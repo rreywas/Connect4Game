@@ -1,2 +1,2 @@
 # Connect4Game
-Files for connect 4 project
+Files for Connect 4 project
