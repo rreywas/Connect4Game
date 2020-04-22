@@ -1,88 +1,213 @@
 package core;
-import ui.Connect4TextConsole;
+import java.io.IOException;
+import java.util.Scanner;
 
+import jdk.internal.org.objectweb.asm.Handle;
+import ui.Connect4TextConsole;
+import java.net.*;
 /**
- * Attempts to drop a players game piece into the board
- * and checks every way that a player can win.
- * 
- * @author Brendan Brunelle
- * @version (version) 2/23/20
+ *Connect 4 Game
+ * Author: Sawyer Breitenbucher
+ * Date: 2-25-2020
+ *
  */
 public class Connect4 {
 
-	
-/**
- * Attempts to drop a piece(player) into the current board in the desired column.
- * 
- * @param board The game board
- * @param column The inputed column
- * @param player The current player and also the piece that will be dropped.
- * @return boolean to tell if the piece was able to be dropped.
- */
-public static boolean dropPiece(char[][]board, int column, char player) {
-	
-	if(board[0][column]!= ' ') {
-		System.out.println("Column is full");
-		return false;
-	}
-	
-	for(int row=board.length-1;row>=0;row--) {
-		if(board[row][column]==' ') {
-			board[row][column] = player;
-			return true;
-		}
-	}
-	return false;
-}
+    public static final String PLAYER_1_SYMBOL = "O";
+    public static final String PLAYER_2_SYMBOL = "X";
+    String[][] boardGame;
+    private int rowPosition;
+    public boolean gameOver;
+    public boolean gameWon;
+    private boolean isComputer;
 
-/**
- * Checks if there is a win condition in the parameter board.
- * 
- * @param board The game board
- * @return boolean Tells if there was a winning move.
- */
-public static boolean checkWin(char[][]board) {
-	
-	
-	//Horizontal check
-	for(int row=0; row<board.length;row++) {
-		for(int col=0;col<board[row].length-3;col++) {
-			if(board[row][col]!= ' ' && board[row][col]==board[row][col+1] && 
-					board[row][col]==board[row][col+2] && board[row][col]==board[row][col+3]) {
-				return true;
-			}
-		}
-	}
-	
-	//Vertical check
-	for(int col=0; col<board[0].length;col++) {
-		for(int row=0;row<board.length-3;row++) {
-			if(board[row][col]!= ' ' && board[row][col]==board[row+1][col] && 
-					board[row][col]==board[row+2][col] && board[row][col]==board[row+3][col]) {
-				return true;
-			}
-		}
-	}
+    public void setIsComputer(boolean isComputer){
+        this.isComputer = isComputer;
+    }
 
-	//Diagonal from top left to bottom right
-	for(int row=0; row<board.length-3;row++) {
-		for(int col=0;col<board[0].length-3;col++) {
-			if(board[row][col]!= ' ' && board[row][col]==board[row+1][col+1] && 
-					board[row][col]==board[row+2][col+2] && board[row][col]==board[row+3][col+3]) {
-				return true;
-			}
-		}
-	}
-	
-	//Diagonal from bottom left to top right
-	for(int row=3; row<board.length;row++) {
-		for(int col=0;col<board[0].length-3;col++) {
-			if(board[row][col]!= ' ' && board[row][col]==board[row-1][col+1] && 
-					board[row][col]==board[row-2][col+2] && board[row][col]==board[row-3][col+3]) {
-				return true;
-			}
-		}
-	}
-	return false;
-}
+
+    public Connect4(String[][] boardGame){
+        this.boardGame = boardGame;
+    }
+
+    public String[][] getBoardGame(){
+        return boardGame;
+    }
+
+    /**
+     * Checks if the most recent move done by the player allows them to win the game
+     * @param row input of row value
+     * @param col input of column value
+     * @param symbol input of what piece the player is playing with
+     * @return returns true or false depending on if the player has won the game
+     */
+    public boolean checkWinningMove(int row, int col, String symbol) {
+        int leftCounter = 0;
+        int rightCounter = 0;
+        final int MAXIMUM_COL = 6;
+
+        //check horizontal win condition
+        int increment = col;
+        while (boardGame[row][increment].equals(symbol) && increment < MAXIMUM_COL){
+            rightCounter++;
+            increment++;
+        }
+        increment = col;
+        while (boardGame[row][increment].equals(symbol) && increment < MAXIMUM_COL){
+            leftCounter++;
+            if (increment == 0){
+                break;
+            }
+            increment--;
+        }
+           if (leftCounter + rightCounter > 4){
+               gameWon = true;
+               return true;
+           }
+
+           //Check vertical win condition
+           leftCounter = 0;
+           rightCounter = 0;
+
+           increment = row;
+           while (boardGame[increment][col].equals(symbol)){
+               rightCounter++;
+               if (increment == 5){
+                   break;
+               }
+               increment++;
+
+        }
+           increment = row;
+            while (boardGame[increment ][col].equals(symbol)){
+                leftCounter++;
+                if (increment == 0){
+                    break;
+                }
+                increment--;
+            }
+        if (leftCounter + rightCounter > 4){
+            gameWon = true;
+            return true;
+        }
+
+        //Check the diagonal win condition (right diagonal)
+        leftCounter = 0;
+        rightCounter = 0;
+        increment = col;
+        int incrementRow = row;
+        while (boardGame[incrementRow][increment].equals(symbol)){
+            rightCounter++;
+            if (increment == 0 || incrementRow == 0){
+                break;
+            }
+            increment--;
+            incrementRow--;
+        }
+        increment = col;
+        incrementRow = row;
+        while (boardGame[incrementRow][increment].equals(symbol)){
+            leftCounter++;
+            if (increment == 6 || incrementRow == 5){
+                break;
+            }
+            incrementRow++;
+            increment++;
+        }
+        if (leftCounter + rightCounter > 4){
+            gameWon = true;
+            return true;
+        }
+
+        leftCounter = 0;
+        rightCounter = 0;
+        increment = col;
+        incrementRow = row;
+
+        while (boardGame[incrementRow][increment].equals(symbol)){
+            rightCounter++;
+            if (increment == 0){
+                break;
+            }
+            if (incrementRow == 5){
+                break;
+            }
+            increment--;
+            incrementRow++;
+        }
+        increment = col;
+        incrementRow = row;
+        while (boardGame[incrementRow][increment].equals(symbol)){
+            leftCounter++;
+            if (incrementRow == 0){
+                break;
+            }
+            if (increment == 6){
+                break;
+            }
+            incrementRow--;
+            increment++;
+        }
+        if (leftCounter + rightCounter > 4){
+            gameWon = true;
+            return true;
+        }
+
+        return false;
+
+        }
+
+    /**
+     * returns true if game is won; false if game is still active
+     * @return boolean
+     */
+    public boolean isGameWon(){
+        return gameWon;
+    }
+
+
+
+    /**
+     * Getter for rowPosition
+     * @return int
+     */
+    public int getRowPosition(){
+        return rowPosition;
+    }
+
+    //find next slot that is open
+
+    /**
+     * Checks to see what the next open space is
+     * @param col (input column value)
+     * @return integer of the next open row value
+     * @throws IllegalArgumentException (should not reach this)
+     */
+    public int nextOpenSpace(int col) {
+
+            for (int i = 5; i >= 0; i--) {
+                if (boardGame[i][col].equals(PLAYER_1_SYMBOL) || boardGame[i][col].equals(PLAYER_2_SYMBOL)) {
+                    rowPosition = i + 1;
+                    return i + 1;
+                } else if (i == 0 && (!boardGame[i][col].equals(PLAYER_1_SYMBOL) || !boardGame[i][col].equals(PLAYER_2_SYMBOL))) {
+                    rowPosition = 0;
+                    return 0;
+                }
+            }
+        throw new IllegalArgumentException();
+    }
+
+
+
+    /**
+     * Allows the player to play a move whilst checking if it is valid
+     * @param col column value
+     * @param symbol what piece the player is playing with
+     */
+    public void playMove(int col, String symbol) throws IOException {
+
+        boardGame[nextOpenSpace(col)][col] = symbol;
+    }
+
+
 }

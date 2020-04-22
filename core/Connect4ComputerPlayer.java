@@ -1,43 +1,53 @@
 package core;
-import java.util.Random;
-import ui.Connect4TextConsole;
-/**
- * Plays a token in a random column from 1 to 7 to simulate an AI. 
- * This class also will display if the computer won or not.
- * 
- * @author Brendan Brunelle
- * @version (version) 3/4/2020
- */
+
+import java.util.Scanner;
+
+import static core.Connect4.PLAYER_1_SYMBOL;
+import static core.Connect4.PLAYER_2_SYMBOL;
+
 
 public class Connect4ComputerPlayer {
-	public static int computerChoice = 0;
-	static Random rand = new Random();
-	
-	/**
-	 * Generates a random number from 1 to 7
-	 */
-	public static void generateRandom() {
-		computerChoice = rand.nextInt(7)+1;
-	}
-	
-	/**
-	 * Attempts to play a computer move and will use recursion to 
-	 * play another column if one can't be played.
-	 */
-	public static void playComputerMove() {
-		generateRandom();
-		if(!Connect4.dropPiece(Connect4TextConsole.board, computerChoice-1, 'O')) {
-			playComputerMove();
-		}else {
-			if(Connect4.checkWin(Connect4TextConsole.board)) {
-				System.out.println("The computer has won.");
-				Connect4TextConsole.printBoard(Connect4TextConsole.board);
-				Connect4TextConsole.win = true;
-			}else {
-				Connect4TextConsole.player = 'X';
-			}
-		}
-	}
 
+    /**
+     * Generates random column to play (computers turn)
+     * @param board
+     * @return int
+     */
+    public int randColGenerator(Connect4 board){
+        int randomCol = (int)(Math.random() * ((7 - 1) + 1)) + 1;
+        while (randomCol > 6 ||
+                randomCol < 0 ||
+                board.getBoardGame()[5][randomCol].equals(PLAYER_1_SYMBOL) ||
+                board.getBoardGame()[5][randomCol].equals(PLAYER_2_SYMBOL))
+        {
+            randomCol = (int)(Math.random() * ((7 - 1) + 1)) + 1;
+        }
+        return randomCol;
+    }
+
+    /**
+     * Determines if player wants to vs a computer or another player
+     * @param scan
+     * @return returns true if playing the computer, returns false if playing another player
+     */
+    public boolean isPlayingComputer(Scanner scan){
+        boolean validInput = false;
+        while (!validInput) {
+            System.out.println("Enter ‘P’ if you want to play against another player; enter ‘C’ to play against computer.");
+            String choosingString = scan.next();
+            if (choosingString.equals("C")) {
+                validInput = true;
+                return true;
+            } else if (choosingString.equals("P")) {
+                validInput = true;
+                return false;
+            }
+            else{
+                System.out.println("Invalid input.");
+            }
+        }
+        System.out.println("Should not be printing this"); //if printed, something went wrong
+        return false; //should never get to this point
+    }
 }
 
